@@ -1,0 +1,14 @@
+# Entorno virtual de Python (se crea en cada máquina, no se sube)
+venv/
+.venv/
+
+# Basura que genera Python al ejecutarse
+__pycache__/
+*.py[cod]
+
+# Secretos y config local — NUNCA subir credenciales
+.env
+
+# Cosas del editor y del sistema operativo
+.vscode/
+.DS_Store
