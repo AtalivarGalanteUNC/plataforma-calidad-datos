@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Identity, Text, func, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.models.base import Base
+from app.infrastructure.models.fuente import Fuente
 
 
 class Dataset(Base):
@@ -15,3 +16,5 @@ class Dataset(Base):
     esquema: Mapped[str] = mapped_column(Text, server_default=text("'public'"))
     tabla: Mapped[str] = mapped_column(Text)
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    fuente: Mapped["Fuente"] = relationship()
