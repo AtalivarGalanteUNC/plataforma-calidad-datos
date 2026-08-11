@@ -3,9 +3,24 @@ from decimal import Decimal
 
 from app.domain.checks.estrategia import EstrategiaDeCheck
 from app.domain.checks.resultado import ResultadoDeCheck
+from app.infrastructure.medidores.medidor_frescura import medir_frescura
+from app.infrastructure.models import Dataset, Fuente
 
 
 class ChequeoFrescura(EstrategiaDeCheck):
+    def medir(
+        self,
+        fuente: Fuente,
+        dataset: Dataset,
+        configuracion: dict,
+    ) -> datetime | None:
+        return medir_frescura(
+            referencia_conexion=fuente.referencia_conexion,
+            esquema=dataset.esquema,
+            tabla=dataset.tabla,
+            columna=configuracion["columna"],
+        )
+
     def ejecutar(
         self,
         medicion: datetime | None,
