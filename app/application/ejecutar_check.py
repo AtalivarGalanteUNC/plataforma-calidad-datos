@@ -1,8 +1,9 @@
 from app.domain.checks.estrategia import EstrategiaDeCheck
 from app.domain.checks.frescura import ChequeoFrescura
+from app.domain.checks.nulls import ChequeoNulls
 from app.domain.checks.resultado import ResultadoDeCheck
+from app.domain.checks.volumen import ChequeoVolumen
 from app.infrastructure.db import SessionLocal
-from app.infrastructure.medidores.medidor_frescura import medir_frescura
 from app.infrastructure.repositorio_checks import obtener_check_por_id
 from app.infrastructure.repositorio_resultados import guardar_resultado
 
@@ -22,6 +23,10 @@ class TipoDeCheckDesconocido(Exception):
 def _fabrica_de_estrategias(tipo: str) -> EstrategiaDeCheck:
     if tipo == "frescura":
         return ChequeoFrescura()
+    if tipo == "nulls":
+        return ChequeoNulls()
+    if tipo == "volumen":
+        return ChequeoVolumen()
     raise TipoDeCheckDesconocido(f"no conozco el tipo de check: {tipo!r}")
 
 
@@ -41,19 +46,8 @@ def ejecutar_check(check_id: int) -> ResultadoDeCheck:
 
         try:
             estrategia = _fabrica_de_estrategias(check.tipo)
-
-            if check.tipo == "frescura":
-                medicion = medir_frescura(
-                    referencia_conexion=fuente.referencia_conexion,
-                    esquema=dataset.esquema,
-                    tabla=dataset.tabla,
-                    columna=configuracion["columna"],
-                )
-            else:
-                medicion = None
-
+            medicion = estrategia.medir(fuente, dataset, configuracion)
             resultado = estrategia.ejecutar(medicion, configuracion)
-
         except Exception as e:
             resultado = ResultadoDeCheck(
                 estado="error",

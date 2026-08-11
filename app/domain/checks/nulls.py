@@ -1,20 +1,19 @@
-from datetime import datetime, timezone
 from decimal import Decimal
 
 from app.domain.checks.estrategia import EstrategiaDeCheck
 from app.domain.checks.resultado import ResultadoDeCheck
-from app.infrastructure.medidores.medidor_frescura import medir_frescura
+from app.infrastructure.medidores.medidor_nulls import medir_nulls
 from app.infrastructure.models import Dataset, Fuente
 
 
-class ChequeoFrescura(EstrategiaDeCheck):
+class ChequeoNulls(EstrategiaDeCheck):
     def medir(
         self,
         fuente: Fuente,
         dataset: Dataset,
         configuracion: dict,
-    ) -> datetime | None:
-        return medir_frescura(
+    ) -> tuple[int, Decimal | None]:
+        return medir_nulls(
             referencia_conexion=fuente.referencia_conexion,
             esquema=dataset.esquema,
             tabla=dataset.tabla,
@@ -23,34 +22,31 @@ class ChequeoFrescura(EstrategiaDeCheck):
 
     def ejecutar(
         self,
-        medicion: datetime | None,
+        medicion: tuple[int, Decimal | None],
         configuracion: dict,
     ) -> ResultadoDeCheck:
-        umbral_horas = Decimal(str(configuracion["umbral_horas"]))
+        umbral_pct = Decimal(str(configuracion["umbral_pct"]))
+        total, porcentaje = medicion
 
-        if medicion is None:
+        if total == 0:
             return ResultadoDeCheck(
                 estado="fallo",
                 valor_medido=None,
-                mensaje="la tabla está vacía, no hay dato para medir la frescura",
+                mensaje="la tabla está vacía, no hay dato para medir nulls",
             )
 
-        ahora = datetime.now(timezone.utc)
-        antiguedad_segundos = Decimal(str((ahora - medicion).total_seconds()))
-        antiguedad_horas = (antiguedad_segundos / Decimal("3600")).quantize(Decimal("0.01"))
-
-        if antiguedad_horas <= umbral_horas:
+        if porcentaje <= umbral_pct:
             return ResultadoDeCheck(
                 estado="paso",
-                valor_medido=antiguedad_horas,
+                valor_medido=porcentaje,
                 mensaje=None,
             )
 
         return ResultadoDeCheck(
             estado="fallo",
-            valor_medido=antiguedad_horas,
+            valor_medido=porcentaje,
             mensaje=(
-                f"la antigüedad de {antiguedad_horas} horas "
-                f"supera el umbral de {umbral_horas} horas"
+                f"el {porcentaje}% de nulls supera "
+                f"el umbral de {umbral_pct}%"
             ),
         )
