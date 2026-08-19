@@ -3,3 +3,4 @@ httpx
 psycopg
 sqlalchemy
 alembic
+celery[redis]
