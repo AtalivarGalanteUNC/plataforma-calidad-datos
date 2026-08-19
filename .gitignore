@@ -12,3 +12,6 @@ __pycache__/
 # Cosas del editor y del sistema operativo
 .vscode/
 .DS_Store
+
+# Runtime de Celery Beat (se regenera solo)
+celerybeat-schedule*
