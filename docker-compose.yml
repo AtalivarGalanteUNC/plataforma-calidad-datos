@@ -11,6 +11,29 @@ services:
     depends_on:
       - postgres
       - redis
+
+  worker:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+    command: celery -A app.infrastructure.celery_app worker --loglevel=info
+    depends_on:
+      - postgres
+      - redis
+
+  beat:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+    command: celery -A app.infrastructure.celery_app beat --loglevel=info
+    depends_on:
+      - redis
+      - worker
+
   postgres:
     image: postgres:18
     env_file:
@@ -20,9 +43,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./initdb:/docker-entrypoint-initdb.d
+
   redis:
     image: redis:8
     ports:
       - "6379:6379"
+
 volumes:
   postgres_data:
