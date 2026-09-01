@@ -3,7 +3,13 @@ import os
 import psycopg
 from fastapi import FastAPI
 
+from app.api.routers import checks, fuentes, resultados
+
 app = FastAPI(title="Plataforma de Calidad de Datos")
+
+app.include_router(checks.router)
+app.include_router(resultados.router)
+app.include_router(fuentes.router)
 
 
 @app.get("/")

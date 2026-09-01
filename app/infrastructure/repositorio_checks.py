@@ -19,3 +19,7 @@ def listar_ids_de_checks_activos(session: Session) -> list[int]:
             select(Check.id).where(Check.activo.is_(True)).order_by(Check.id)
         )
     )
+
+
+def listar_checks(session: Session) -> list[Check]:
+    return list(session.scalars(select(Check).order_by(Check.id)))
